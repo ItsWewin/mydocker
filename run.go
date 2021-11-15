@@ -5,6 +5,7 @@ package main
 import (
 	log "github.com/sirupsen/logrus"
 	"mydocker/mycontainer"
+	"os"
 )
 
 func Run(tty bool, command string) {
@@ -13,6 +14,6 @@ func Run(tty bool, command string) {
 		log.Error(err)
 	}
 
-	parent.wait()
+	parent.Wait()
 	os.Exit(-1)
 }

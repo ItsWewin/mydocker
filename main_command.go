@@ -26,6 +26,7 @@ var runCommand = cli.Command{
 		cmd := ctx.Args().Get(0)
 		tty := ctx.Bool("ti")
 		Run(tty, cmd)
+		return nil
 	},
 }
 
