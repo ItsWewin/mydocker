@@ -9,10 +9,7 @@ import (
 )
 
 type MemoryLimit struct {
-
 }
-
-var MemorySystem = MemoryLimit{}
 
 func (m *MemoryLimit) SourceType() string {
 	return "memory"
