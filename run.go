@@ -8,36 +8,42 @@ import (
 	"mydocker/cgroups/subsystems"
 	"mydocker/mycontainer"
 	"os"
+	"strings"
 )
 
-func Run(tty bool, command string, res *subsystems.ResourceConfig) {
-	parent := mycontainer.NewParentProcess(tty, command)
-
+func Run(tty bool, cmdArray []string, res *subsystems.ResourceConfig) {
+	parent, writePipe := mycontainer.NewParentProcess(tty)
 	if parent == nil {
 		log.Error("New parent process error")
 		return
 	}
 
 	if err := parent.Start(); err != nil {
-		log.Error(err)
+		log.Error("Parent start failed")
+		return
 	}
-
-	log.Infof("[Run] res: %#v", res)
 
 	cgroupManager := cgroups.NewCgroupManager("my-docker-00100")
 	defer cgroupManager.Destroy()
 	err := cgroupManager.Set(res)
 	if err != nil {
-		log.Errorf("[Run] cgroup set failed, err: %s", err)
 		return
 	}
+
+	log.Infof("pid: %d", parent.Process.Pid)
 
 	err = cgroupManager.Apply(parent.Process.Pid)
 	if err != nil {
-		log.Errorf("[Run] cgroup apply failed, pid: %d", parent.Process.Pid)
 		return
 	}
 
+	sendInitCommand(cmdArray, writePipe)
 	parent.Wait()
-	os.Exit(-1)
+}
+
+func sendInitCommand(comArray []string, writePipe *os.File) {
+	command := strings.Join(comArray, " ")
+	log.Infof("command all is %s", command)
+	writePipe.WriteString(command)
+	writePipe.Close()
 }

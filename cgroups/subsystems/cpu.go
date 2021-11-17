@@ -2,6 +2,7 @@ package subsystems
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path"
@@ -52,6 +53,8 @@ func (m *CpuLimit) Remove(customCgroupName string) error {
 	err = os.RemoveAll(subCGroupPath)
 	if err != nil {
 		return fmt.Errorf("remove cpu share fail: %v", err)
+	} else {
+		logrus.Infof("Remove path: %s, succeed", subCGroupPath)
 	}
 
 	return nil

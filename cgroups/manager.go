@@ -25,7 +25,7 @@ func NewCgroupManager(customCGroupName string) *Manager {
 
 	m.Subsystems = []subsystems.Subsystem{
 		&subsystems.MemoryLimit{},
-		&subsystems.CpuLimit{},
+		//&subsystems.CpuLimit{},
 		&subsystems.CpuSetLimit{},
 	}
 
@@ -49,7 +49,7 @@ func (c *Manager) Apply(pid int) error {
 func (c *Manager) Set(res *subsystems.ResourceConfig) error {
 	for _, system := range c.Subsystems {
 		if err := system.Set(c.CustomCGroupName, res); err != nil {
-			logrus.Errorf("cgroup set failed, err: %s, res: %#v", err, res)
+			logrus.Errorf("cgroup set failed, system: %s, err: %s, res: %#v", system, err, res)
 			return err
 		}
 	}

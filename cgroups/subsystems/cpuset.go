@@ -2,6 +2,7 @@ package subsystems
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path"
@@ -44,12 +45,14 @@ func (m *CpuSetLimit) Apply(customCgroupName string, pid int) error {
 func (m *CpuSetLimit) Remove(customCgroupName string) error {
 	subCGroupPath, err := GetcgroupRootPath(m.SourceType(), customCgroupName)
 	if err != nil {
-		return fmt.Errorf("remove cpuset failed: %v", err)
+		return fmt.Errorf("remove cpuset GetcgroupRootPath fail: %v", err)
 	}
 
 	err = os.RemoveAll(subCGroupPath)
 	if err != nil {
-		return fmt.Errorf("remove cpuset fail: %v", err)
+		return fmt.Errorf("remove cpuset path: %s, fail: %v", subCGroupPath, err)
+	} else {
+		logrus.Infof("Remove path: %s, succeed", subCGroupPath)
 	}
 
 	return nil

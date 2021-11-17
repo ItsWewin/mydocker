@@ -4,7 +4,6 @@ package main
 
 import (
 	"errors"
-	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"mydocker/cgroups/subsystems"
 	"mydocker/mycontainer"
@@ -36,7 +35,11 @@ var runCommand = cli.Command{
 			return errors.New(".Missing container command")
 		}
 
-		cmd := ctx.Args().Get(0)
+		var cmdArray []string
+		for _, arg := range ctx.Args() {
+			cmdArray = append(cmdArray, arg)
+		}
+
 		tty := ctx.Bool("ti")
 
 		res := &subsystems.ResourceConfig{
@@ -45,7 +48,7 @@ var runCommand = cli.Command{
 			CpuSet:      ctx.String("cpuset"),
 		}
 
-		Run(tty, cmd, res)
+		Run(tty, cmdArray, res)
 		return nil
 	},
 }
@@ -54,9 +57,6 @@ var initCommand = cli.Command{
 	Name:      "init",
 	ShortName: "Init container process run user's process in container",
 	Action: func(ctx *cli.Context) error {
-		log.Infof("init command")
-		cmd := ctx.Args().Get(0)
-		log.Infof("command: %s", cmd)
 		err := mycontainer.InitProcess()
 		return err
 	},

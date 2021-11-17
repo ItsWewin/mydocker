@@ -2,6 +2,7 @@ package subsystems
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path"
@@ -50,6 +51,8 @@ func (m *MemoryLimit) Remove(customCgroupName string) error {
 
 	if err := os.RemoveAll(subCGroupPath); err != nil {
 		return fmt.Errorf("remove memory failed: %v", err)
+	} else {
+		logrus.Infof("Remove path: %s, succeed", subCGroupPath)
 	}
 
 	return nil

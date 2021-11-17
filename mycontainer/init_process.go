@@ -22,6 +22,7 @@ func InitProcess() error {
 
 	defaultMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
 	syscall.Mount("proc", "/proc", "proc", uintptr(defaultMountFlags), "")
+
 	path, err := exec.LookPath(cmdArray[0])
 	if err != nil {
 		log.Errorf("Exec loop path error %v", err)
@@ -31,6 +32,7 @@ func InitProcess() error {
 	log.Infof("Find path %s", path)
 	if err := syscall.Exec(path, cmdArray[0:], os.Environ()); err != nil {
 		log.Errorf(err.Error())
+		return err
 	}
 	return nil
 }
