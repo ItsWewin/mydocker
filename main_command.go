@@ -57,7 +57,7 @@ var initCommand = cli.Command{
 		log.Infof("init command")
 		cmd := ctx.Args().Get(0)
 		log.Infof("command: %s", cmd)
-		err := mycontainer.InitProcess(cmd, nil)
+		err := mycontainer.InitProcess()
 		return err
 	},
 }
