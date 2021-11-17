@@ -15,14 +15,14 @@ func (m *MemoryLimit) SourceType() string {
 	return "memory"
 }
 
-func (m *MemoryLimit) Set(customCgroupName string, resourceLimit string) error {
+func (m *MemoryLimit) Set(customCgroupName string, res *ResourceConfig) error {
 	subCGroupPath, err := GetcgroupRootPath(m.SourceType(), customCgroupName)
 	if err != nil {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(subCGroupPath, "memory.limit_in_bytes"), []byte(resourceLimit), 0644); err != nil {
-		return fmt.Errorf("set cgroup memory fail %v", err)
+	if err := ioutil.WriteFile(path.Join(subCGroupPath, "memory.limit_in_bytes"), []byte(res.MemoryLimit), 0644); err != nil {
+		return fmt.Errorf("set memory fail %v", err)
 	}
 
 	return nil
@@ -35,7 +35,7 @@ func (m *MemoryLimit) Apply(customCgroupName string, pid int) error {
 	}
 
 	if err := ioutil.WriteFile(path.Join(subCGroupPath, "tasks"), []byte(strconv.Itoa(pid)), 0644); err != nil {
-		return fmt.Errorf("set cgroup memory fail %v", err)
+		return fmt.Errorf("applay memory fail %v", err)
 	}
 
 	return nil
@@ -48,8 +48,8 @@ func (m *MemoryLimit) Remove(customCgroupName string) error {
 		return err
 	}
 
-	if err := os.Remove(subCGroupPath); err != nil {
-		return fmt.Errorf("remove cgroup memory failed: %v", err)
+	if err := os.RemoveAll(subCGroupPath); err != nil {
+		return fmt.Errorf("remove memory failed: %v", err)
 	}
 
 	return nil

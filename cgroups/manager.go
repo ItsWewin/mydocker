@@ -3,7 +3,6 @@ package cgroups
 import (
 	"github.com/sirupsen/logrus"
 	"mydocker/cgroups/subsystems"
-	"strconv"
 )
 
 const (
@@ -16,46 +15,43 @@ type Manager struct {
 	// cgroup在hierarchy中的路径 相当于创建的cgroup目录相对于root cgroup目录的路径
 	CustomCGroupName string
 	// 资源配置
-	Subsystem subsystems.Subsystem
+	Subsystems []subsystems.Subsystem
 }
 
-func NewCgroupManager(customCGroupName string, resourceType string) *Manager {
+func NewCgroupManager(customCGroupName string) *Manager {
 	m := &Manager{
 		CustomCGroupName: customCGroupName,
 	}
 
-	var subsystem subsystems.Subsystem
-	switch resourceType {
-	case resourceTypeMemory:
-		subsystem = &subsystems.MemoryLimit{}
-	case resourceTypeCpu:
-		subsystem = &subsystems.CpuLimit{}
-	case resourceTypeCpuSet:
-		subsystem = &subsystems.CpuSetLimit{}
-	default:
-		return nil
+	m.Subsystems = []subsystems.Subsystem{
+		&subsystems.MemoryLimit{},
+		&subsystems.CpuLimit{},
+		&subsystems.CpuSetLimit{},
 	}
-	m.Subsystem = subsystem
 
 	return m
 }
 
 // 将进程pid加入到这个cgroup中
 func (c *Manager) Apply(pid int) error {
-	err := c.Subsystem.Apply(c.CustomCGroupName, pid)
-	if err != nil {
-		logrus.Errorf("memory cgroup apply failed, pid: %d", pid)
-		return err
+	for _, subSystem := range c.Subsystems {
+		err := subSystem.Apply(c.CustomCGroupName, pid)
+		if err != nil {
+			logrus.Errorf("cgroup apply failed, err: %s, pid: %d", err, pid)
+			return err
+		}
 	}
 
 	return nil
 }
 
 // 设置cgroup资源限制
-func (c *Manager) Set(memoryLimitByte int) error {
-	if err := c.Subsystem.Set(c.CustomCGroupName, strconv.Itoa(memoryLimitByte)); err != nil {
-		logrus.Errorf("memory cgroup apply failed, pid: %d", memoryLimitByte)
-		return err
+func (c *Manager) Set(res *subsystems.ResourceConfig) error {
+	for _, system := range c.Subsystems {
+		if err := system.Set(c.CustomCGroupName, res); err != nil {
+			logrus.Errorf("cgroup set failed, err: %s, res: %#v", err, res)
+			return err
+		}
 	}
 
 	return nil
@@ -63,9 +59,11 @@ func (c *Manager) Set(memoryLimitByte int) error {
 
 //释放 cgroup
 func (c *Manager) Destroy() error {
-	if err := c.Subsystem.Remove(c.CustomCGroupName); err != nil {
-		logrus.Errorf("memory cgroup apply failed, customCGroupName: %s", c.CustomCGroupName)
-		return err
+	for _, system := range c.Subsystems {
+		if err := system.Remove(c.CustomCGroupName); err != nil {
+			logrus.Errorf("cgroup destroy failed, err: %s, customCGroupName: %s", err, c.CustomCGroupName)
+			return err
+		}
 	}
 
 	return nil

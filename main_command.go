@@ -1,4 +1,4 @@
-// +build linux
+// build linux
 
 package main
 
@@ -6,6 +6,7 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"mydocker/cgroups/subsystems"
 	"mydocker/mycontainer"
 )
 
@@ -17,6 +18,18 @@ var runCommand = cli.Command{
 			Name:  "ti",
 			Usage: "enable tty",
 		},
+		cli.StringFlag{
+			Name:  "m",
+			Usage: "memory limit (bytes)",
+		},
+		cli.StringFlag{
+			Name:  "cpu",
+			Usage: "cpu share limit",
+		},
+		cli.StringFlag{
+			Name:  "cpuset",
+			Usage: "cpuset limit",
+		},
 	},
 	Action: func(ctx *cli.Context) error {
 		if len(ctx.Args()) < 1 {
@@ -25,7 +38,14 @@ var runCommand = cli.Command{
 
 		cmd := ctx.Args().Get(0)
 		tty := ctx.Bool("ti")
-		Run(tty, cmd)
+
+		res := &subsystems.ResourceConfig{
+			MemoryLimit: ctx.String("m"),
+			CpuShare:    ctx.String("cpu"),
+			CpuSet:      ctx.String("cpuset"),
+		}
+
+		Run(tty, cmd, res)
 		return nil
 	},
 }
