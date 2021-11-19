@@ -14,12 +14,12 @@ import (
 func Run(tty bool, cmdArray []string, res *subsystems.ResourceConfig) {
 	parent, writePipe := mycontainer.NewParentProcess(tty)
 	if parent == nil {
-		log.Error("New parent process error")
+		log.Error("parent is nil")
 		return
 	}
 
 	if err := parent.Start(); err != nil {
-		log.Error("Parent start failed")
+		log.Error("Parent start failed: %v", err)
 		return
 	}
 
