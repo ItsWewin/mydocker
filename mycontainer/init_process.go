@@ -19,7 +19,9 @@ func InitProcess() error {
 		return fmt.Errorf("Run container get user command error, cmdArray is nil")
 	}
 
-	setUpMount()
+	if err := setUpMount(); err != nil {
+		return fmt.Errorf("set up mount failed: %v", err)
+	}
 
 	path, err := exec.LookPath(cmdArray[0])
 	if err != nil {
@@ -46,30 +48,35 @@ func readUserCommand() []string {
 	return strings.Split(msgStr, " ")
 }
 
-func setUpMount() {
+func setUpMount() error {
 	pwd, err := os.Getwd()
 	if err != nil {
 		log.Errorf("get pwd failed: %v", err)
-		return
+		return err
 	}
 
-	pivotRoot(pwd)
-
+	if err = pivotRoot(pwd); err != nil {
+		log.Errorf("pivot root exec failed: %s", err)
+		return err
+	}
 
 	//syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, "")
 
 	defaultMountFlags := syscall.MS_NOEXEC | syscall.MS_NOSUID | syscall.MS_NODEV
 	if err := syscall.Mount("proc", "/proc", "proc", uintptr(defaultMountFlags), ""); err != nil {
 		log.Errorf("proc mount faled: %s", err)
-		return
+		return err
 	}
+	log.Infof("pro mount succeed")
 
  	if err := syscall.Mount("tmpfs", "/dev", "tmpfs", syscall.MS_NOSUID|syscall.MS_STRICTATIME, "mode=755"); err != nil {
  		log.Errorf("tmfs mount failed: %s", err)
-	    return
+	    return err
     }
     
     log.Infof("mount succeed")
+ 	
+ 	return nil
 }
 
 func pivotRoot(root string) error {
